@@ -1,0 +1,33 @@
+Every 1,0s: kubectl get pods                                                          MacBook-Pro-de-Aghiles.local: 19:05:04
+                                                                                                               in 0,165s (0)
+NAME                    READY   STATUS    RESTARTS   AGE                                                                    
+httpdaghiles            1/1     Running   0          38m                                                                    
+nginx-docs              1/1     Running   0          66m                                                                    
+nginx-yaml              1/1     Running   0          88m                                                                    
+test-6546ccdcf9-8slbl   1/1     Running   0          14m                                                                    
+test-6546ccdcf9-968dq   1/1     Running   0          14m                                                                    
+test-6546ccdcf9-9ls84   1/1     Running   0          14m                                                                    
+test-6546ccdcf9-h6hmk   1/1     Running   0          14m                                                                    
+test-6546ccdcf9-jkmps   1/1     Running   0          14m                                                                    
+test-6546ccdcf9-l7zhv   1/1     Running   0          14m                                                                    
+test-6546ccdcf9-r4w56   1/1     Running   0          14m                                                                    
+test-6546ccdcf9-r5clg   1/1     Running   0          14m                                                                    
+test-6546ccdcf9-vxz2z   1/1     Running   0          14m                                                                    
+test-6546ccdcf9-x8bkb   1/1     Running   0          14m                                                                    
+                                                                                                                            
+                                                                                                                            
+                                                                                                                            
+                                                                                                                            
+                                                                                                                            
+                                                                                                                            
+                                                                                                                            
+                                                                                                                            
+                                                                                                                            
+                                                                                                                            
+                                                                                                                            
+                                                                                                                            
+                                                                                                                            
+                                                                                                                            
+                                                                                                                            
+                                                                                                                            
+                                                                                                                            

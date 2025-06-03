@@ -1,0 +1,65 @@
+  trigger:
+    branches:
+      include:
+        - master
+
+  pool:
+    vmImage: 'ubuntu-latest'
+
+  variables:
+  - group : TerraformSecrets
+
+  stages:
+    - stage: Deploy_Dev
+      displayName: 'Deploy to Development'
+      jobs:
+        - job: Terraform_Dev
+          displayName: 'Terraform Apply for Dev'
+          steps:
+            - checkout: self
+            - task: TerraformInstaller@0
+              inputs:
+                terraformVersion: '1.3.9'
+            - script: |
+                terraform -chdir=environnements/dev init
+                terraform -chdir=environnements/dev state list
+                terraform -chdir=environnements/dev validate
+                terraform -chdir=environnements/dev plan -out=tfplan
+                # terraform -chdir=environnements/dev apply -auto-approve tfplan
+                terraform apply -refresh-only
+                terraform -chdir=environnements/dev state list
+              env:
+                ARM_CLIENT_ID: $(servicePrincipalId)
+                ARM_CLIENT_SECRET: $(servicePrincipalKey)
+                ARM_SUBSCRIPTION_ID: $(subscriptionId)
+                ARM_TENANT_ID: $(tenantId)
+              displayName: 'Terraform Init, Validate, Plan, and Apply'
+
+    - stage: Deploy_Prod
+      displayName: 'Deploy to Production'
+      dependsOn: Deploy_Dev
+      condition: succeeded()
+      jobs:
+        - deployment: Terraform_Prod
+          displayName: 'Terraform Apply for Prod'
+          environment: 'Production'
+          strategy:
+            runOnce:
+              deploy:
+                steps:
+                  - checkout: self
+                  - task: TerraformInstaller@0
+                    inputs:
+                      terraformVersion: '1.3.9'
+                  - script: |
+                      terraform -chdir=environnements/prod init
+                      terraform -chdir=environnements/prod validate
+                      terraform -chdir=environnements/prod plan -out=tfplan
+                      terraform -chdir=environnements/prod apply -auto-approve tfplan                    
+                    workingDirectory: $(Build.SourcesDirectory)/environnements/prod 
+                    env:
+                      ARM_CLIENT_ID: $(servicePrincipalId)
+                      ARM_CLIENT_SECRET: $(servicePrincipalKey)
+                      ARM_SUBSCRIPTION_ID: $(subscriptionId)
+                      ARM_TENANT_ID: $(tenantId)
+                    displayName: 'Terraform Init, Validate, Plan, and Apply'

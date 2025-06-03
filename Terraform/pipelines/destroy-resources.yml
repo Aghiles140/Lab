@@ -1,0 +1,32 @@
+trigger: none  # Prevents automatic triggers; run manually when needed
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  - group: TerraformSecrets  # Ensure this variable group includes necessary secrets
+
+stages:
+  - stage: Destroy_Dev
+    displayName: 'Destroy Development Environment'
+    jobs:
+      - job: Terraform_Destroy_Dev
+        displayName: 'Terraform Destroy for Dev'
+        steps:
+          - checkout: self
+          - task: TerraformInstaller@0
+            inputs:
+              terraformVersion: '1.3.9'
+          - script: |
+              cd environnements/dev
+              terraform init \
+              terraform -chdir=environnements/dev init
+              terraform -chdir=environnements/dev validate
+              terraform -chdir=environnements/dev plan -destroy -out=tfplan
+              terraform -chdir=environnements/dev apply -auto-approve tfplan
+            env:
+              ARM_CLIENT_ID: $(servicePrincipalId)
+              ARM_CLIENT_SECRET: $(servicePrincipalKey)
+              ARM_SUBSCRIPTION_ID: $(subscriptionId)
+              ARM_TENANT_ID: $(tenantId)
+            displayName: 'Terraform Init, State List, Show, and Destroy'

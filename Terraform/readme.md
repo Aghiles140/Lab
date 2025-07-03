@@ -1,124 +1,141 @@
-# Gestion des groupes de ressources Azure avec Terraform / Azure Devops
-
-
-
-## Structure du Projet 📁
-
+# Azure Resource Management with Terraform / Azure DevOps
+## Project Structure 📁
 ```bash
-├── environnements/
+├── environments/
 │   ├── dev/
 │   │   ├── main.tf
 │   │   └── variables.tf
+    │   └── backend.tf
 │   └── prod/
 │       ├── main.tf
 │       └── variables.tf
+|       └── backend.tf
 ├── modules/
-│   └── ResourceGroup/
+│   ├── ResourceGroup/
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   └── outputs.tf
+│   └── VirtualNetwork/
 │       ├── main.tf
 │       ├── variables.tf
 │       └── outputs.tf
 ├── pipelines/
-│   ├── create-rg.yml
-│   └── destroy-rg.yml
-├── backend.tf
+│   ├── create-infrastructure.yml
+│   └── destroy-infrastructure.yml
+
 ├── providers.tf
 └── README.md
 ```
-## Objectif
-Ce projet Terraform a pour but d’automatiser la création et la suppression de groupes de ressources Azure pour différents environnements (dev et prod), à l’aide de modules réutilisables et de pipelines CI/CD Azure DevOps.
 
-## Technologies utilisées
+## Objective
+This Terraform project automates the creation and deletion of Azure infrastructure for different environments (dev and prod), using reusable modules and Azure DevOps CI/CD pipelines.
+
+## Technologies Used
 - Terraform v1.3.9
 - Azure DevOps Pipelines
 - AzureRM Provider ~> 3.0
 
-## Configuration Remote State
-Terraform State est stocké dans le cloud dans le groupe de ressource __stracctfstate213__ afin de permettre la _collaboration_ et la _cohérence_
+## Remote State Configuration
+Terraform State is stored in the cloud in the **stracctfstate213** resource group to enable *collaboration* and *consistency*
 
 ```hcl
 terraform {
     backend "azurerm" {
-      resource_group_name = "rg-dev-infra" #RG qui contient le str account
+      resource_group_name = "rg-dev-infra" # RG containing the storage account
       storage_account_name = "stracctfstate213"
-      container_name = "tfstate" # container pour stocker les state files
-      key = terraform.tfstate #Blob qui sera crée dans le container
+      container_name = "tfstate" # container to store state files
+      key = "terraform.tfstate" # Blob created in the container
     }
-    
 }
 ```
 
+## Prerequisites
+- Terraform installed
+- Azure CLI authentication
+- Azure Service Principal with necessary permissions
+- Access to Azure storage account for state management
 
-## Prérequis
-- Terraform Installé
-- Authentification Azure CLI
-- Service Principal Azure avec les autorisations necessaires
-- Accés au storage account Azure pour la gestion du state
 ---
+
 ## Modules
+
 ### modules/ResourceGroup
-Ce module gère la création d’un groupe de ressources Azure avec des tags définis :
+This module manages Azure resource group creation with defined tags:
+- `env` : Environment (dev, prod, etc.)
+- `project` : Project name
+- `location` : Azure region (default: `France Central`)
 
+####  Outputs
+- resource_group_name : Resource group name
+- resource_group_id : Resource group ID
 
-- `env` : Environnement (dev, prod, etc.)
-- `project` : Nom du projet
-- `location` : Région Azure (par défaut : `France Central`)
+### modules/VirtualNetwork
+This module manages Azure virtual network infrastructure:
+- Virtual Network with customizable address space
+- Multiple subnets with configurable CIDR blocks
+- Network Security Groups with predefined rules
+- Route tables for traffic management
 
-#### 🧾 Outputs
-- Resource_group_name : nom du groupe de ressources
-- Resource_group_id : ID du groupe de ressources
+####  Outputs
+- vnet_id : Virtual network ID
+- subnet_ids : Map of subnet IDs
+- nsg_ids : Map of Network Security Group IDs
+
 ---
 
-## 📂 Environnements
-Chaque environnement (dev et prod) possède ses propres fichiers :
+##  Environments
+Each environment (dev and prod) has its own files:
+- main.tf : Module reference and environment-specific variables
+- variables.tf : Variable declarations
 
-- main.tf : référence au module et variables spécifiques à l'environnement
-- variables.tf : déclaration des variables
+##  CI/CD Pipelines
 
-## 🚀 Pipelines CI/CD
-#### pipelines/create-rg.yml
-Pipeline de déploiement :
+#### pipelines/create-infrastructure.yml
+Deployment pipeline:
+- **Deploy_Dev** stage: deploys to development environment
+- **Deploy_Prod** stage: deploys to **prod** only if **dev** succeeds
 
-- Étape __Deploy_Dev__ : déploie dans l'environnement de développement
+#### pipelines/destroy-infrastructure.yml
+**Destruction** pipeline (manual execution):
+- Destroy_Dev and Destroy_Prod stages to remove respective resources
 
-- Étape __Deploy_Prod__ : déploie dans __prod__ uniquement si __dev__ a réussi
-
-#### pipelines/destroy-rg.yml
-Pipeline de **destruction** (à exécuter manuellement) :
-- Étapes Destroy_Dev et Destroy_Prod pour supprimer les ressources respectives
-
-##### Variables d’environnement requises (via Variable Group ```TerraformSecrets```)
+##### Required Environment Variables (via Variable Group `TerraformSecrets`)
 - servicePrincipalId
 - servicePrincipalKey
 - subscriptionId
 - tenantId
 
-## Commandes Terraform utiles
-#### Initialiser un environnement :
+## Useful Terraform Commands
+
+#### Initialize an environment:
 ```bash
-cd environnements/dev     # ou prod
+cd environments/dev     # or prod
 terraform init
 ```
 
-#### Valider et planifier :
+#### Validate and plan:
 ```bash
 terraform validate
 terraform plan
 ```
 
-#### Appliquer les changements :
+#### Apply changes:
 ```bash
 terraform apply
 ```
-#### Détruire les ressources :
+
+#### Destroy resources:
 ```bash
 terraform destroy
 ```
 
-## Bonnes pratiques
-- Ne jamais modifier manuellement le fichier ```terraform.tfstate```.
-- Utiliser les pipelines pour les déploiements en production.
-- Centraliser les secrets dans Azure DevOps (```TerraformSecrets```).
-- Garder les modules génériques et réutilisables.
+## Best Practices
+- Never manually modify the `terraform.tfstate` file
+- Use pipelines for production deployments
+- Centralize secrets in Azure DevOps (`TerraformSecrets`)
+- Keep modules generic and reusable
+- Use consistent naming conventions
+- Implement proper tagging strategy
 
-## Bonnes pratiques
-Pour toute question ou amélioration, veuillez contacter l’équipe Infra responsable de ce projet.
+## Contact
+For questions or improvements, please contact do a pull request.

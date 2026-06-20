@@ -18,4 +18,5 @@ FROM nginxinc/nginx-unprivileged:1.23-alpine-perl
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 COPY --from=build usr/src/app/dist/ /usr/share/nginx/html
+
 EXPOSE 8080
